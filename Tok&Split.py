@@ -3,8 +3,9 @@
 import codecs
 import re
 
-f = codecs.open('test-big.txt', 'r', 'utf-8')
+f = codecs.open('test.txt', 'r', 'utf-8-sig')
 text = f.read()
+f.close()
 
 arr = []
 
@@ -12,37 +13,74 @@ d = codecs.open('abbr.txt', 'r', 'utf-8')
 for line in d:
     line = line.strip()
     arr.append(line)
+d.close()
+
+arr_newsent = []
+
+d = codecs.open('abbr_name.txt', 'r', 'utf-8')
+for line in d:
+    line = line.strip()
+    arr_newsent.append(line)
+d.close()
+
+sharova = []
+
+d = codecs.open('sharova.txt', 'r', 'utf-8')
+for line in d:
+    line = line.strip()
+    sharova.append(line)
+d.close()
+
+hyph_words = []
+
+d = codecs.open('hyphen.txt', 'r', 'utf-8')
+for line in d:
+    line = line.strip()
+    hyph_words.append(line)
+d.close()
+
 
 # normalization
 
 text = re.sub(u' +', ' ', text) #больше одного пробела
-text = re.sub(u'([?!])([A-ZА-ЯЁ])', '\\1 \\2', text) # отсутствие пробела перед новым предложением
+text = re.sub(u'([?!.])([А-ЯЁA-Z])', '\\1 \\2', text) # отсутствие пробела перед новым предложением
 text = re.sub(u'([“„«\(]) (.+?)', '\\1\\2', text)  #пробел после кавычки
 text = re.sub(u'(.+?) ([.,?!;:”„»\)])', '\\1\\2', text)  #пробел перед кавычки
-text = re.sub(u'(.+?)-\r\n(.+?)', '\\1\\2', text) #ереносы с дефисом
+
+h_arr = re.findall('([^ ]+?-\r\n[^ .,:?!]+)', text)
+for el in h_arr:
+    new_el = re.sub('\r\n', '', ''.join(el))
+    if new_el not in hyph_words:
+        new_el = re.sub('-\r\n', '', text)
+    text = re.sub(el, new_el, text)
+
 text = re.sub(u'([.!?]){3,}', '\\1\\1\\1', text)
 text = re.sub(u' *— *', u' — ', text) #тире
 text = re.sub(u' *- *', '-', text) #дефис
-text = re.sub(u'\ufeff', '', text)
 text = re.sub(u'(\.){2,}', u' … ', text)
 text = re.sub(u' +', ' ', text) #больше одного пробела
-
+text = re.sub(u' \"([^ ])', u' “\\1', text)
+text = re.sub(u'([^ ])\" ', u'\\1„ ', text)
 
 # tokenizer
+
+print '\nTokenization\n\n'
 
 email = re.compile(u'(?:[a-z0-9_-]+\.)*[a-z0-9_-]+@[a-z0-9_-]+(?:\.[a-z0-9_-]+)*\.[a-z]{2,6}') #email
 url = re.compile(u'(?:(?:https?|ftp)\:\/\/)?(?:[a-z0-9]{1})(?:(?:\.[a-z0-9-])|(?:[a-z0-9-]))*\.(?:[a-z]{2,6})(?:\/?)') #url
 phone = re.compile(u'\+\d{2}\(?:\d{3}\)\d{3}-\d{2}-\d{2}') #phone
 date = re.compile(u'(?:[1-9]|0[1-9]|[1-2]\d|3[01])[\.\/](?:[1-9]|0[1-9]|1[0-2])[\.\/](?:[1-2]\d{3})') #date
 time = re.compile(u'[0-9]?[0-9]:[0-9][0-9]') #time
-abbr = re.compile(u'(?:[A-ZА-ЯЁ]\.){3,10}') #abbreviation
+abbr = re.compile(u'(?:[A-ZА-ЯЁ]\. ?){1,10}[A-ZА-ЯЁ]\.') #abbreviation
 numb = re.compile(u'[0-9]+[-., ][0-9]+') #float&intervals
 hyph = re.compile(u'[A-Za-zА-ЯЁа-яё]+?(?:-[A-Za-zА-ЯЁа-яё]+)+') #hyphen
 brack = re.compile(u'[„\"\'“«][A-Za-zА-ЯЁа-яё]+?[“\"\'”»]') #brackets
 name = re.compile(u'(?:[A-ZА-ЯЁ]\. *)?[A-ZА-ЯЁ]\. *[A-ZА-ЯЁ][a-zа-яё]+') #name
-value = re.compile(u'\$[0-9]+[,.]?[0-9]*') #dollars
-percent = re.compile(u'[0-9]+?[-,.]?[0-9]+%') #percentage
+value = re.compile(u'\$[0-9]+(?: ?[-,.]? ?[0-9]+)*') #dollars
+percent = re.compile(u'[0-9]+(?: ?[-,.]? ?[0-9]+)*%') #percentage
 month = re.compile(u'[0123]?[0-9] ?(?:янв|февр|мар|июн|июл|авг|сент|окт|нояб|дек)[а-яё]+') #month
+title = re.compile(u'[A-Z][a-z]+(?: [A-Z][a-z]+){1,}')
+
 
 emails = email.findall(text) #email
 text = email.sub('$$$EMAIL$$$', text) #email
@@ -59,7 +97,15 @@ text = date.sub('$$$DATE$$$', text) #date
 times = time.findall(text) #time
 text = time.sub('$$$TIME$$$', text) #time
 
-abbrs = abbr.findall(text) #abbreviation
+for el in sharova:
+    abbrs_big = re.findall(u'(?:[A-ZА-ЯЁ]\.){3,10} ?' + el, text)
+    text = re.sub(u'([A-ZА-ЯЁ]\.){3,10}( ?' + el + ')', '$$$BIGABBREV$$$\\2', text)
+
+abbrs_1 = abbr.findall(text) #abbreviation
+abbrs = []
+for abbrev in abbrs_1:
+    abbrev = re.sub(' ', '', abbrev)
+    abbrs.append(abbrev)
 text = abbr.sub('$$$ABBREV$$$', text) #abbreviation
 
 names = name.findall(text) #name
@@ -83,22 +129,52 @@ text = brack.sub('$$$BRACKETS$$$', text) #brackets
 months = month.findall(text)
 text = month.sub('$$$MONTH$$$', text)
 
+titles = title.findall(text)
+text = title.sub('$$$TITLE$$$', text)
+
 
 text_short_new = ''
 shorts = []
+big_shorts = []
 text_short = text.split()
+i = 0
+mem = ''
 for el in text_short:
     if el in arr:
         shorts.append(el)
         text_short_new += '$$$SHORTENING$$$'
+    elif el in arr_newsent:
+        next_word = re.sub('[-.,!?:;\)\(\]\[\{\}\\/\$%&@\'\"„“«»><]', '', text_short[i + 1])
+        try:
+            if next_word in sharova:
+                mem = el
+                i += 1
+                continue
+            else:
+                shorts.append(el)
+                text_short_new += '$$$SHORTENING$$$'
+        except:
+            shorts.append(el)
+            text_short_new += '$$$SHORTENING$$$'
+    elif mem != '':
+        punct = ''
+        m = re.search('[-.,!?:;\)\(\]\[\{\}\\/\$%&@\'\"„“«»><]', el)
+        if m:
+            punct = m.group()
+            el = re.sub('([-.,!?:;\)\(\]\[\{\}\\/\$%&@\'\"„“«»><])', '', el)
+        big_shorts.append(mem + ' ' + el)
+        text_short_new += '$$$BIGSHORTENING$$$'
+        text_short_new += punct
+        mem = ''
     else:
         text_short_new += el
     text_short_new += ' '
+    i += 1
 
 
 text_for_tok = re.sub(u'([^ ]+?)([-,.!?;:\'»>\"@#%&\*\)=\+\\\/`}\]])', '\\1 \\2', text_short_new) # уязвим для $
-text_for_tok = re.sub(u'([-,.!?;:\'<«\"@#%&\*\(=\+\\\/`{\[])([^ ]+?)', '\\1 \\2', text_for_tok)
-text_for_tok = re.sub(u'([>\"\)}\]])([-,.!?;:\'<\"@#%&\*\(=\+\\\/`{\[])', '\\1 \\2', text_for_tok)
+text_for_tok = re.sub(u'([-,.!?;:\'<«\"“@#%&\*\(=\+\\\/`{\[])([^ ]+?)', '\\1 \\2', text_for_tok)
+text_for_tok = re.sub(u'([>\"\)}\]])([-,.!?;:\'<\"”@#%&\*\(=\+\\\/`{\[])', '\\1 \\2', text_for_tok)
 
 
 em = 0
@@ -115,6 +191,9 @@ sh = 0
 val = 0
 per = 0
 mon = 0
+ab = 0
+bs = 0
+tit = 0
 
 freqs = {}
 
@@ -183,9 +262,22 @@ for token in text_tokenized:
         print months[mon]
         freq(months[mon])
         mon += 1
+    elif token == '$$$BIGABBREV$$$':
+        print abbrs_big[ab]
+        freq(abbrs_big[ab])
+        ab += 1
+    elif token == '$$$BIGSHORTENING$$$':
+        print big_shorts[bs]
+        freq(big_shorts[bs])
+        bs += 1
+    elif token == '$$$TITLE$$$':
+        print titles[tit]
+        freq(titles[tit])
+        tit += 1
     else:
         freq(token.lower())
         print token
+
 
 
 # splitter
@@ -194,7 +286,7 @@ for token in text_tokenized:
 
 text_for_split = re.sub(u'([^ .]+?)([-,.…!?;:\'»>\"@#%&\*\)=\+\\\/`}\]])', '\\1 \\2', text_short_new) # уязвим для $
 text_for_split = re.sub(u'([-,.…!?;:\'<«\"@#%&\*\(=\+\\\/`{\[])([^ .]+?)', '\\1 \\2', text_for_split)
-text_for_split = re.sub(u'([>\"\)}\]])([-,.…!?;:\'<\"@#%&\*\(=\+\\\/`{\[])', '\\1 \\2', text_for_split)
+text_for_split = re.sub(u'([>\"\)}\]])([-,.…!?;:\'<«»\"@#%&\*\(=\+\\\/`{\[])', '\\1 \\2', text_for_split)
 
 text_split = re.sub(u'((?:\.|[?!])+) ([-A-ZА-ЯЁ])', '\\1 <%%%> \\2', text_for_split) #несколько идущих подряд терминальных знаков
 text_split = re.sub(u'(…) ([-A-ZА-ЯЁ])', '\\1 <%%%> \\2', text_split) #многоточие и большая буква
@@ -217,6 +309,9 @@ sh = 0
 val = 0
 per = 0
 mon = 0
+ab = 0
+bs = 0
+tit = 0
 
 new_text = ''
 
@@ -264,6 +359,15 @@ for token in text_tokenized:
     elif token == '$$$MONTH$$$':
         new_text += months[mon]
         mon += 1
+    elif token == '$$$BIGABBREV$$$':
+        new_text += abbrs_big[ab]
+        ab += 1
+    elif token == '$$$BIGSHORTENING$$$':
+        new_text += big_shorts[bs]
+        bs += 1
+    elif token == '$$$TITLE$$$':
+        new_text += titles[tit]
+        tit += 1
     else:
         new_text += token
     new_text += ' '
@@ -272,8 +376,8 @@ for token in text_tokenized:
 
 new_text = re.sub(u' +', ' ', new_text) #больше одного пробела
 new_text = re.sub(u'([?!…])([A-ZА-ЯЁ])', '\\1 \\2', new_text) # отсутствие пробела перед новым предложением
-new_text = re.sub(u'([“„«\(]) ([A-Za-zА-ЯЁа-яё]+?)', '\\1\\2', new_text)  #пробел после кавычки
-new_text = re.sub(u'(.+?) ([.,…?!;:”„»\)])', '\\1\\2', new_text)  #пробел перед кавычки
+new_text = re.sub(u'([“„«\(\"\']) (.+?)', '\\1\\2', new_text)  #пробел после кавычки
+new_text = re.sub(u'(.+?) ([.,…?!;:”„»\)\"\'])', '\\1\\2', new_text)  #пробел перед кавычки
 new_text = re.sub(u' *— *', u' — ', new_text) #тире
 new_text = re.sub(u' *- *', '-', new_text) #дефис
 
@@ -281,10 +385,13 @@ new_text = re.sub(u' *- *', '-', new_text) #дефис
 new_text = re.sub(u'([“„«\(]) ([A-Za-zА-ЯЁа-яё]+?)', '\\1\\2', new_text)  #пробел после кавычки
 new_text = re.sub(u'(.+?) ([.,…?!;:”„»\)])', '\\1\\2', new_text)  #пробел перед кавычки
 
+print '\nSplitization\n\n'
 
 text_splitted = new_text.split('<%%%>')
 for el in text_splitted:
     print el
+
+print '\nDictionary of frequencies\n\n'
 
 for i in freqs:
     print i, freqs[i]
