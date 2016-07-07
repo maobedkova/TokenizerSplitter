@@ -60,12 +60,12 @@ smile_1 = re.compile(u'([:=]\-?[)(]+)') ### tokens that resemble to smile
 smile_2 = re.compile(u'[ツ‿♡ノヽ・∀*ω)(_/¯^OoОо0\\\]{3,}') ###
 number = re.compile(u'(?:^| )((?:[+-]?\d+(?:[.,]\d+(?:e-?\d+)?)?)|(?:\\\[0-3]{1,2})|(?:0x[0-9a-fA-F]{1,16}))') # natural & floating point numbers | octets | hex digits
 acronym = re.compile(u'(?:[A-ZА-ЯЁ]\\. ?){1,10}[A-ZА-ЯЁ]\\.') ### tokens that resemble to acronym
-rep_punct = re.compile(u'(?:[?!]{2,}|\\.{3})') ### repeated punctuation
+rep_punct = re.compile(u'(?:[-?!]{2,}|\\.{3})') ### repeated punctuation
 hashtag = re.compile(u'\#[^-“”«»,.?!:;)(\\]\\[`\"„†‡‹}{\'%…‰‘’•–—›\\\|\r\n ]*') ### comments
 sgml = re.compile(u'^<.*>$') ### sgml tags
 defis = re.compile(u'[^-“”«»,.?!:;)(\\]\\[`\"„†‡‹}{\'%…‰‘’•–—›\\\|\r\n ]+?(?:-[^-“”«»,.?!:;)(\\]\\[`\"„†‡‹}{\'%…‰‘’•–—›\\\|\r\n ]+)+') #hyphen
 short = re.compile(u'[^-“”«»,.?!:;)(\\]\\[`\"„†‡‹}{\'%…‰‘’•–—›\\\|\r\n ]+?\\.')
-date = re.compile(u'(?:[1-9][0-9]{3}|(?:0[1-9]|[12][0-9]|3[01]))[\./](?:[01][0-9])[\\./](?:(?:0[1-9]|[12][0-9]|3[01])|[1-9][0-9]{3})[\.\/]?')
+date = re.compile(u'(?:[1-9][0-9]{3}|(?:0[1-9]|[12][0-9]|3[01]))[\./](?:[01][0-9])[\\./](?:[1-9][0-9]{3}|0[1-9]|[12][0-9]|3[01])[\.\/]?')
 
 # change
 
