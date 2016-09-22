@@ -57,8 +57,9 @@ url_1 = re.compile(u'(?:https?|ftp|www\\.)[a-z0-9/\\._:]+') ### here go urls of 
 url_2 = re.compile(u'((?:[a-zа-я]+\\.)+(?:biz|com|edu|gov|info|int|mil|name|net|org|pro|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|sv|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|sv|rw|sa|sb|sc|sd|se|sg|sh|si|sj|sk|sl|sm|sn|so|sr|st|su|sv|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|za|zm|zw|рф|ру))') # tokens that resemble to url
 email = re.compile(u'([_a-z0-9-]+(?:\\.[_a-z0-9-]+)*@(?:[a-zа-я]+\\.)+(?:biz|com|edu|gov|info|int|mil|name|net|org|pro|travel|xxx|ac|ad|ae|af|ag|ai|al|am|an|ao|aq|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cs|cu|cv|cx|cy|cz|dd|de|dj|dk|dm|do|dz|ec|ee|eg|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|sv|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|sv|rw|sa|sb|sc|sd|se|sg|sh|si|sj|sk|sl|sm|sn|so|sr|st|su|sv|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|za|zm|zw|рф|ру))') # tokens that resemble to e-mail
 smile_1 = re.compile(u'([:=]\-?[)(]+)') ### tokens that resemble to smile
-smile_2 = re.compile(u'[ツ‿♡ノヽ・∀*ω)(_/¯^OoОо0\\\]{3,}') ###
-number = re.compile(u'(?:^| )((?:[+-]?\d+(?:[.,]\d+(?:e-?\d+)?)?)|(?:\\\[0-3]{1,2})|(?:0x[0-9a-fA-F]{1,16}))') # natural & floating point numbers | octets | hex digits
+smile_2 = re.compile(u'[ツ‿♡ノヽ・∀*ω)(_/¯^OoОо\\\]{3,}') ###
+number_1 = re.compile(u'([12][0-9]{3}-(?:о?м|ого)|[0-9]+\.[0-9]+)') ### cases 2008-th and 1.5,1.6
+number_2 = re.compile(u'(?:^| )((?:[A-Za-z]?[0-9]+[A-Za-z]?)|(?:[+-]?\d+(?:[.,]\d+(?:e-?\d+)?)?)|(?:\\\[0-3]{1,2})|(?:0x[0-9a-fA-F]{1,16}))') # natural & floating point numbers | octets | hex digits
 acronym = re.compile(u'(?:[A-ZА-ЯЁ]\\. ?){1,10}[A-ZА-ЯЁ]\\.') ### tokens that resemble to acronym
 rep_punct = re.compile(u'(?:[-?!]{2,}|\\.{3})') ### repeated punctuation
 hashtag = re.compile(u'\#[^-“”«»,.?!:;)(\\]\\[`\"„†‡‹}{\'%…‰‘’•–—›\\\|\r\n ]*') ### comments
@@ -84,14 +85,17 @@ text = url_2.sub(' URLTOKEN_TYPE_209484712 ', text)
 emails = email.findall(text)
 text = email.sub(' EMAILTOKEN_TYPE_109484712 ', text)
 
-defises = defis.findall(text)
-text = defis.sub(' DEFISTOKEN_TYPE_109484712 ', text)
-
 dates = date.findall(text)
 text = date.sub(' DATETOKEN_TYPE_109484712 ', text)
 
-numbers = number.findall(text)
-text = number.sub(' NUMBERTOKEN_TYPE_109484712 ', text)
+numbers_type1 = number_1.findall(text)
+text = number_1.sub(' NUMBERTOKEN_TYPE_109484712 ', text)
+
+numbers_type2 = number_2.findall(text)
+text = number_2.sub(' NUMBERTOKEN_TYPE_209484712 ', text)
+
+defises = defis.findall(text)
+text = defis.sub(' DEFISTOKEN_TYPE_109484712 ', text)
 
 acronyms = acronym.findall(text)
 text = acronym.sub(' ACRONYMTOKEN_TYPE_109484712 ', text)
@@ -126,7 +130,8 @@ url1 = 0
 url2 = 0
 sm1 = 0
 sm2 = 0
-num = 0
+num1 = 0
+num2 = 0
 acr = 0
 rp = 0
 hsh = 0
@@ -138,6 +143,7 @@ dt = 0
 w = codecs.open('output.txt', 'w', 'utf-8')
 
 text_tokenized = text.split()
+print text_tokenized
 for token in text_tokenized:
     rest = ''
     if token == 'EMAILTOKEN_TYPE_109484712':
@@ -161,9 +167,13 @@ for token in text_tokenized:
         w.write(smiles_type2[sm2] + '\n')
         sm2 += 1
     elif token == 'NUMBERTOKEN_TYPE_109484712':
-        print numbers[num]
-        w.write(numbers[num] + '\n')
-        num += 1
+        print numbers_type1[num1]
+        w.write(numbers_type1[num1] + '\n')
+        num1 += 1
+    elif token == 'NUMBERTOKEN_TYPE_209484712':
+        print numbers_type2[num2]
+        w.write(numbers_type2[num2] + '\n')
+        num2 += 1
     elif token == 'ACRONYMTOKEN_TYPE_109484712':
         print acronyms[acr]
         w.write(acronyms[acr] + '\n')
